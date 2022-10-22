@@ -1,0 +1,22 @@
+before:
+  hooks:
+  - go mod download
+builds:
+- id: kubectl-grep
+  main: ./cmd/kubectl-grep
+  binary: kubectl-grep
+  env:
+  - CGO_ENABLED=0
+  goos:
+  - linux
+  - darwin
+  - windows
+  goarch:
+  - amd64
+  - arm64
+  ignore:
+  - goos: windows
+    goarch: arm64
+# modelines, feel free to remove those if you don't want/use them:
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj

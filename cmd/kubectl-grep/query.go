@@ -7,9 +7,11 @@ import (
 	"sync"
 	"time"
 
+	text "github.com/jedib0t/go-pretty/v6/text"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 )
 
@@ -68,10 +70,7 @@ func queryAPI(client dynamic.Interface, api apiResource, allNs bool) ([]unstruct
 		} else {
 			intf = nintf
 		}
-		resp, err := intf.List(context.TODO(), metav1.ListOptions{
-			Limit:    250,
-			Continue: next,
-		})
+		resp, err := intf.List(context.TODO(), metav1.ListOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("listing resources failed (%s): %w", api.GroupVersionResource(), err)
 		}
@@ -101,22 +100,30 @@ func lookupNamespace(k map[string]interface{}) string {
 	return m["namespace"].(string)
 }
 
-func lookupPod(lookup string, k map[string]interface{}) {
+var i = 0
+var total []int
+
+func increment() {
+	i += 1
+	total = append(total, i)
+}
+func lookupPod(restConfig *rest.Config, k map[string]interface{}, input string) {
 	podName := getPodName(k)
-	if strings.Contains(podName, "9492j") {
+	if strings.Contains(podName, input) {
 		namespace := lookupNamespace(k)
 		containerInfo, _ := k["status"].(map[string]interface{})
 		containerStatuses, _ := containerInfo["containerStatuses"].([]interface{})
 		for _, c := range containerStatuses {
 			containerStateObj, _ := c.(map[string]interface{})
 			state, _ := containerStateObj["state"].(map[string]interface{})
-			_, ok := state["not running"]
+			_, ok := state["running"]
 			if !ok {
-				fmt.Printf("Pod is not running debug: kubectl describe pod %v -n %v\n", podName, namespace)
+				go increment()
+				getPodEvents(restConfig, namespace, podName, "Not running")
 			} else {
-				fmt.Printf("Pod: %v Status: running Namespace: %v\n", podName, namespace)
+				go increment()
+				fmt.Printf("Pod: %v Status: %v Namespace: %v\n", podName, text.FgGreen.Sprint("Running"), namespace)
 			}
 		}
-
 	}
 }

@@ -1,13 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/dynamic"
 )
 
-func main() {
+func containerState(name string) {
 	cf = genericclioptions.NewConfigFlags(true)
 
 	restConfig, err := cf.ToRESTConfig()
@@ -36,6 +37,15 @@ func main() {
 	}
 
 	for _, v := range l {
-		lookupPod("9492j", v.Object)
+		lookupPod(restConfig, v.Object, name)
+	}
+
+	var found int
+	for _, v := range total {
+		found += v
+	}
+
+	if found == 0 {
+		fmt.Printf("Pod: %v not found\n", name)
 	}
 }
