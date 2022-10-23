@@ -119,7 +119,7 @@ func lookupPod(restConfig *rest.Config, k map[string]interface{}, input string) 
 			_, ok := state["running"]
 			if !ok {
 				go increment()
-				getPodEvents(restConfig, namespace, podName, "Not running")
+				getPodEvents(namespace, podName, "Not running")
 			} else {
 				go increment()
 				fmt.Printf("Pod: %v Status: %v Namespace: %v\n", podName, text.FgGreen.Sprint("Running"), namespace)

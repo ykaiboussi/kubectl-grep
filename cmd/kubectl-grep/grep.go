@@ -6,6 +6,7 @@ import (
 
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/util/flowcontrol"
 )
 
 func containerState(name string) {
@@ -16,6 +17,7 @@ func containerState(name string) {
 		log.Fatal("failed to load Config: %w", err)
 	}
 
+	restConfig.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(20, 50)
 	dyn, err := dynamic.NewForConfig(restConfig)
 	if err != nil {
 		log.Fatal("failed to construct dynamic client: %w", err)

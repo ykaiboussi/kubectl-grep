@@ -9,11 +9,14 @@ import (
 	text "github.com/jedib0t/go-pretty/v6/text"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubernetes "k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
+	"k8s.io/client-go/util/flowcontrol"
+	config "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-func getPodEvents(restConfig *rest.Config, namespace, podName, status string) {
-	clientset, err := kubernetes.NewForConfig(restConfig)
+func getPodEvents(namespace, podName, status string) {
+	cfg := config.GetConfigOrDie()
+	cfg.RateLimiter = flowcontrol.NewTokenBucketRateLimiter(20, 50)
+	clientset, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
