@@ -23,6 +23,12 @@ type apiResource struct {
 	gv schema.GroupVersion
 }
 
+type runningPods struct {
+	name      string
+	status    string
+	namespace string
+}
+
 func (rm *resourceMap) resources() []apiResource { return rm.list }
 
 func (a apiResource) GroupVersionResource() schema.GroupVersionResource {
