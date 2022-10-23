@@ -34,5 +34,5 @@ func getPodEvents(namespace, podName, status string) {
 			{item.LastTimestamp, item.Reason, text.WrapSoft(item.Message, 50)},
 		})
 	}
-	fmt.Printf("Output:\n%s\n", tw.Render())
+	fmt.Printf("\n%s\n", tw.Render())
 }

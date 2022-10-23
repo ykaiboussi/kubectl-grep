@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	text "github.com/jedib0t/go-pretty/v6/text"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/util/flowcontrol"
@@ -42,12 +43,21 @@ func containerState(name string) {
 		lookupPod(restConfig, v.Object, name)
 	}
 
+	if len(list) != 0 {
+		printPodInfo(list)
+	}
+
+	check(name, total)
+}
+
+func check(name string, total []int) {
+
 	var found int
 	for _, v := range total {
 		found += v
 	}
 
 	if found == 0 {
-		fmt.Printf("Pod: %v not found\n", name)
+		fmt.Printf(`Pod: %v not found  ¯\_(ツ)_/¯`+"\n", text.FgRed.Sprint(name))
 	}
 }

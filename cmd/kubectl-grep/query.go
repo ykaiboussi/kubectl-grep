@@ -15,6 +15,18 @@ import (
 	"k8s.io/klog"
 )
 
+var (
+	// adding a counter goroutine to check if pod is present
+	i     = 0
+	total []int
+
+	// adding a goroutine to append Running Pods information
+	p    runningPods
+	list []runningPods
+
+	wg sync.WaitGroup
+)
+
 func getAllResources(client dynamic.Interface, apis []apiResource, allNs bool) ([]unstructured.Unstructured, error) {
 	var mu sync.Mutex
 	var wg sync.WaitGroup
@@ -100,12 +112,17 @@ func lookupNamespace(k map[string]interface{}) string {
 	return m["namespace"].(string)
 }
 
-var i = 0
-var total []int
-
 func increment() {
 	i += 1
 	total = append(total, i)
+}
+
+func appendRunningPodds(podName, namespace string) {
+	defer wg.Done()
+	p.name = podName
+	p.namespace = namespace
+	p.status = text.FgGreen.Sprint("Running")
+	list = append(list, p)
 }
 func lookupPod(restConfig *rest.Config, k map[string]interface{}, input string) {
 	podName := getPodName(k)
@@ -122,8 +139,11 @@ func lookupPod(restConfig *rest.Config, k map[string]interface{}, input string) 
 				getPodEvents(namespace, podName, "Not running")
 			} else {
 				go increment()
-				fmt.Printf("Pod: %v Status: %v Namespace: %v\n", podName, text.FgGreen.Sprint("Running"), namespace)
+
+				wg.Add(1)
+				go appendRunningPodds(podName, namespace)
 			}
 		}
 	}
+	wg.Wait()
 }
